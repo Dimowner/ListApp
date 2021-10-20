@@ -6,11 +6,9 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.listapp.databinding.ListItemPostBinding
-import java.text.SimpleDateFormat
-import java.util.*
 
 class PostsListAdapter(
-	private val onItemClick: (String) -> Unit
+	private val onItemClick: (Int) -> Unit
 ) : ListAdapter<PostListItem, RecyclerView.ViewHolder>(PostsListDiffUtil) {
 
 	override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -41,8 +39,6 @@ class PostsListAdapter(
 		onItemClick: (Int) -> Unit
 	) : RecyclerView.ViewHolder(binding.root) {
 
-		private val dateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.ENGLISH)
-
 		init {
 			binding.root.setOnClickListener {
 				onItemClick.invoke(adapterPosition)
@@ -52,7 +48,6 @@ class PostsListAdapter(
 		fun bind(item: PostListItem) {
 			binding.title.text = item.title
 			binding.details.text = item.details
-//			date.text = dateFormat.format(item.date.time)
 		}
 	}
 }

@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
 	}
 
 	private fun updateScreen(state: MainState) {
-		binding.networkNotConnected.isVisible = state.isNetworkAvailable
+		binding.networkNotConnected.isVisible = !state.isNetworkAvailable
 	}
 
 	override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {

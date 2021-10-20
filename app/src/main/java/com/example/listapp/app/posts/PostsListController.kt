@@ -1,49 +1,65 @@
 package com.example.listapp.app.posts
 
 import com.example.listapp.NetworkObserver
+import com.example.listapp.logic.DataRepository
 import dagger.hilt.android.scopes.FragmentScoped
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
+import timber.log.Timber
 import javax.inject.Inject
 
 @FragmentScoped
 class PostsListController @Inject constructor(
-	private val postsListViewModel: PostsListViewModel,
-	private val networkObserver: NetworkObserver
+	private val viewModel: PostsListViewModel,
+	private val networkObserver: NetworkObserver,
+	private val dataRepository: DataRepository
 ) {
 
-	private var disposable: Disposable? = null
+	private var networkStateDisposable: Disposable? = null
+	private var loadDataDisposable: Disposable? = null
 
-	init {
-		val list = listOf(
-			PostListItem("1", "title1", "details1"),
-			PostListItem("2", "title2", "details2"),
-			PostListItem("3", "title3", "details3"),
-			PostListItem("4", "title4", "details4"),
-			PostListItem("5", "title5", "details5"),
-			PostListItem("6", "title6", "details6"),
-			PostListItem("7", "title7", "details7"),
-			PostListItem("8", "title8", "details8"),
-			PostListItem("9", "title9", "details9"),
-			PostListItem("10", "title10", "details10")
-		)
-		postsListViewModel.setList(list)
+	fun loadPosts() {
+		if (viewModel.isNetworkAvailable()) {
+			viewModel.setRefreshing(true)
+			loadDataDisposable?.dispose()
+			loadDataDisposable = dataRepository.getPosts()
+					.subscribeOn(Schedulers.io())
+					.observeOn(AndroidSchedulers.mainThread())
+					.subscribe(
+						{ list ->
+							viewModel.setList(list.map { PostListItem(it.id, it.title, it.body) })
+							viewModel.setRefreshing(false)
+							viewModel.setPlaceholderVisible(list.isEmpty())
+						}, { t ->
+							Timber.e(t)
+							viewModel.showError(t)
+							viewModel.setRefreshing(false)
+							viewModel.setPlaceholderVisible(true)
+						}
+					)
+		}
 	}
 
-	fun onItemClick(id: String) {
-		postsListViewModel.selectItem(id)
+	fun onItemClick(id: Int) {
+		viewModel.selectItem(id)
 	}
 
 	fun subscribeNetworkStateChanges() {
-		disposable?.dispose()
-		disposable = networkObserver.observeNetworkStateChanges()
+		networkStateDisposable?.dispose()
+		networkStateDisposable = networkObserver.observeNetworkStateChanges()
 			.observeOn(AndroidSchedulers.mainThread())
 			.subscribe { isConnected ->
-				postsListViewModel.setPullToRefreshEnabled(isConnected)
+				viewModel.setPullToRefreshEnabled(isConnected)
+				viewModel.setNetworkAvailable(isConnected)
 			}
 	}
 
 	fun unsubscribe() {
-		disposable?.dispose()
+		networkStateDisposable?.dispose()
+	}
+
+	fun clear() {
+		loadDataDisposable?.dispose()
 	}
 }

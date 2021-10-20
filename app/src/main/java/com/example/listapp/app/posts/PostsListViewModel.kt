@@ -21,6 +21,14 @@ class PostsListViewModel @Inject constructor() : ViewModel() {
 
 	val postsListEventsLiveData: LiveData<PostsListEvents> = mutableListEventsLiveData
 
+	fun setNetworkAvailable(value: Boolean) {
+		mutablePostsListLiveData.value = postsListLiveData.value?.copy(isNetworkAvailable = value)
+	}
+
+	fun isNetworkAvailable(): Boolean {
+		return postsListLiveData.value?.isNetworkAvailable ?: false
+	}
+
 	fun setPullToRefreshEnabled(value: Boolean) {
 		mutablePostsListLiveData.value = postsListLiveData.value?.copy(isPullToRefreshEnabled = value)
 	}
@@ -37,8 +45,12 @@ class PostsListViewModel @Inject constructor() : ViewModel() {
 		mutablePostsListLiveData.value = postsListLiveData.value?.copy(listData = list)
 	}
 
-	fun selectItem(id: String) {
+	fun selectItem(id: Int) {
 		mutableListEventsLiveData.value = PostsListEvents.OpenDetails(id)
+	}
+
+	fun showError(t: Throwable) {
+		mutableListEventsLiveData.value = PostsListEvents.ShowError(t)
 	}
 
 	fun onSaveState(): Parcelable {
@@ -51,5 +63,6 @@ class PostsListViewModel @Inject constructor() : ViewModel() {
 }
 
 sealed class PostsListEvents {
-	data class OpenDetails(val id: String): PostsListEvents()
+	data class OpenDetails(val id: Int): PostsListEvents()
+	data class ShowError(val t: Throwable): PostsListEvents()
 }

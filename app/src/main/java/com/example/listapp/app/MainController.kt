@@ -19,7 +19,7 @@ class MainController @Inject constructor(
 		disposable = networkObserver.observeNetworkStateChanges()
 			.observeOn(AndroidSchedulers.mainThread())
 			.subscribe { isConnected ->
-				mainViewModel.setNetworkAvailable(!isConnected)
+				mainViewModel.setNetworkAvailable(isConnected)
 			}
 	}
 

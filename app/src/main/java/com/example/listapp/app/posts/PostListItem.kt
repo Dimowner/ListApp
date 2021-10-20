@@ -6,7 +6,7 @@ import java.util.*
 
 @Parcelize
 data class PostListItem(
-	val id: String,
+	val id: Int,
 	val title: String,
 	val details: String,
 	val date: Calendar? = null

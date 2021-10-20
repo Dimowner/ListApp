@@ -16,18 +16,6 @@ class MainViewModel @Inject constructor() : ViewModel() {
 
 	val mainLiveData: LiveData<MainState> = mutableMainLiveData
 
-	fun setName(name: String) {
-		mutableMainLiveData.value = mainLiveData.value?.copy(name = name)
-	}
-
-	fun setLogin(login: String) {
-		mutableMainLiveData.value = mainLiveData.value?.copy(login = login)
-	}
-
-	fun setPassword(password: String) {
-		mutableMainLiveData.value = mainLiveData.value?.copy(password = password)
-	}
-
 	fun setNetworkAvailable(value: Boolean) {
 		mutableMainLiveData.value = mainLiveData.value?.copy(isNetworkAvailable = value)
 	}

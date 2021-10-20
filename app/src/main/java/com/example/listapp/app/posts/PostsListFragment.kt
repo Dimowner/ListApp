@@ -4,11 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.listapp.R
 import com.example.listapp.databinding.FragmentPostsListBinding
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -26,6 +29,11 @@ class PostsListFragment: Fragment() {
 	lateinit var controller: PostsListController
 
 	private lateinit var adapter: PostsListAdapter
+
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		controller.loadPosts()
+	}
 
 	override fun onCreateView(
 		inflater: LayoutInflater,
@@ -45,7 +53,14 @@ class PostsListFragment: Fragment() {
 			controller.onItemClick(id)
 		}
 		binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+		binding.recyclerView.addItemDecoration(
+			DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL)
+		)
 		binding.recyclerView.adapter = adapter
+
+		binding.swipeContainer.setOnRefreshListener {
+			controller.loadPosts()
+		}
 	}
 
 	override fun onStart() {
@@ -76,12 +91,20 @@ class PostsListFragment: Fragment() {
 					PostsListFragmentDirections.toDetails(id = event.id)
 				)
 			}
+			is PostsListEvents.ShowError -> {
+				Toast.makeText(requireContext(), R.string.error_failed_to_load, Toast.LENGTH_LONG).show()
+			}
 		}
 	}
 
 	override fun onDestroyView() {
 		super.onDestroyView()
 		_binding = null
+	}
+
+	override fun onDestroy() {
+		super.onDestroy()
+		controller.clear()
 	}
 
 	override fun onSaveInstanceState(outState: Bundle) {
