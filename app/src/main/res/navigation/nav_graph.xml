@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+		xmlns:app="http://schemas.android.com/apk/res-auto"
+		xmlns:tools="http://schemas.android.com/tools"
+		android:id="@+id/nav_graph"
+		app:startDestination="@id/listFragment">
+
+	<fragment
+			android:id="@+id/listFragment"
+			android:name="com.example.listapp.app.posts.PostsListFragment"
+			android:label="ListFragment"
+			tools:layout="@layout/fragment_posts_list" >
+
+		<action
+				android:id="@+id/to_details"
+				app:destination="@id/detailsScreen" />
+
+	</fragment>
+
+	<fragment
+			android:id="@+id/detailsScreen"
+			android:name="com.example.listapp.app.details.DetailsFragment"
+			android:label="DetailsFragment"
+			tools:layout="@layout/fragment_details" >
+
+		<argument
+				android:name="id"
+				app:argType="string"
+				android:defaultValue="" />
+	</fragment>
+
+</navigation>

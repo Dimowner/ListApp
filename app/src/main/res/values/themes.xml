@@ -12,5 +12,27 @@
 		<!-- Status bar color. -->
 		<item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
 		<!-- Customize your theme here. -->
+
+		<item name="windowActionBar">false</item>
+		<item name="windowNoTitle">true</item>
+	</style>
+
+	<style name="NoNetworkConnection">
+		<item name="android:textSize">@dimen/text_small</item>
+		<item name="android:padding">@dimen/spacing_small</item>
+		<item name="android:text">@string/no_connection_to_network</item>
+		<item name="android:textColor">@color/text_primary_dark</item>
+		<item name="android:background">?attr/colorSecondary</item>
+		<item name="android:gravity">center</item>
+	</style>
+
+	<style name="Placeholder">
+		<item name="android:textSize">@dimen/text_medium</item>
+		<item name="android:text">@string/empty</item>
+		<item name="android:textColor">@color/text_primary_dark</item>
+		<item name="android:layout_gravity">center</item>
+		<item name="android:gravity">center</item>
+		<item name="android:drawableTop">@drawable/ic_search</item>
+		<item name="android:drawablePadding">16dp</item>
 	</style>
 </resources>
