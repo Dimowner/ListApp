@@ -60,6 +60,7 @@ class DetailsFragment: Fragment() {
 	override fun onStart() {
 		super.onStart()
 		controller.subscribeNetworkStateChanges()
+		controller.observePost(args.id)
 	}
 
 	override fun onStop() {

@@ -2,6 +2,7 @@ package com.example.listapp.app.posts
 
 import com.example.listapp.NetworkObserver
 import com.example.listapp.logic.DataRepository
+import com.example.listapp.logic.LocalDataRepository
 import dagger.hilt.android.scopes.FragmentScoped
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -13,11 +14,13 @@ import javax.inject.Inject
 class PostsListController @Inject constructor(
 	private val viewModel: PostsListViewModel,
 	private val networkObserver: NetworkObserver,
-	private val dataRepository: DataRepository
+	private val dataRepository: DataRepository,
+	private val localDataRepository: LocalDataRepository
 ) {
 
 	private var networkStateDisposable: Disposable? = null
 	private var loadDataDisposable: Disposable? = null
+	private var observeDataDisposable: Disposable? = null
 
 	fun loadPosts() {
 		if (viewModel.isNetworkAvailable()) {
@@ -28,7 +31,10 @@ class PostsListController @Inject constructor(
 					.observeOn(AndroidSchedulers.mainThread())
 					.subscribe(
 						{ list ->
-							viewModel.setList(list.map { PostListItem(it.id, it.title, it.body) })
+							localDataRepository.insertPosts(list)
+								.subscribeOn(Schedulers.io())
+								.observeOn(AndroidSchedulers.mainThread())
+								.subscribe()
 							viewModel.setRefreshing(false)
 							viewModel.setPlaceholderVisible(list.isEmpty())
 						}, { t ->
@@ -39,6 +45,21 @@ class PostsListController @Inject constructor(
 						}
 					)
 		}
+	}
+
+	fun observePosts() {
+		observeDataDisposable = localDataRepository.observablePosts()
+			.observeOn(AndroidSchedulers.mainThread())
+			.subscribeOn(Schedulers.io())
+			.subscribe(
+				{ list ->
+					viewModel.setList(list.map { PostListItem(it.id, it.title, it.body) })
+					viewModel.setPlaceholderVisible(list.isEmpty())
+				}, { t ->
+					Timber.e(t)
+					viewModel.showError(t)
+				}
+			)
 	}
 
 	fun onItemClick(id: Int) {
@@ -57,6 +78,7 @@ class PostsListController @Inject constructor(
 
 	fun unsubscribe() {
 		networkStateDisposable?.dispose()
+		observeDataDisposable?.dispose()
 	}
 
 	fun clear() {

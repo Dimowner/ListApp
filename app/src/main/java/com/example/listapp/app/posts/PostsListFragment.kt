@@ -66,6 +66,7 @@ class PostsListFragment: Fragment() {
 	override fun onStart() {
 		super.onStart()
 		controller.subscribeNetworkStateChanges()
+		controller.observePosts()
 	}
 
 	override fun onStop() {

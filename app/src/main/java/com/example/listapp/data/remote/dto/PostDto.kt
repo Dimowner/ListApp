@@ -1,4 +1,4 @@
-package com.example.listapp.data.dto
+package com.example.listapp.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 

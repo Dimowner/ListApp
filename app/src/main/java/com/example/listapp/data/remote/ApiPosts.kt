@@ -1,6 +1,6 @@
-package com.example.listapp.data
+package com.example.listapp.data.remote
 
-import com.example.listapp.data.dto.PostDto
+import com.example.listapp.data.remote.dto.PostDto
 import io.reactivex.Maybe
 import retrofit2.http.GET
 import retrofit2.http.Path

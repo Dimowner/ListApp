@@ -1,7 +1,7 @@
 package com.example.listapp.di
 
 import com.example.listapp.BuildConfig
-import com.example.listapp.data.ApiPosts
+import com.example.listapp.data.remote.ApiPosts
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -13,7 +13,12 @@
 
 		<action
 				android:id="@+id/to_details"
-				app:destination="@id/detailsScreen" />
+				app:destination="@id/detailsScreen"
+				app:enterAnim="@anim/enter_right_to_left"
+				app:exitAnim="@anim/exit_left_to_right"
+				app:popEnterAnim="@anim/enter_left_to_right"
+				app:popExitAnim="@anim/exit_right_to_left"
+				/>
 
 	</fragment>
 

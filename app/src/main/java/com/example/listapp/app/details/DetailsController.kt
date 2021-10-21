@@ -2,6 +2,7 @@ package com.example.listapp.app.details
 
 import com.example.listapp.NetworkObserver
 import com.example.listapp.logic.DataRepository
+import com.example.listapp.logic.LocalDataRepository
 import dagger.hilt.android.scopes.FragmentScoped
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -13,15 +14,15 @@ import javax.inject.Inject
 class DetailsController @Inject constructor(
 	private val viewModel: DetailsViewModel,
 	private val networkObserver: NetworkObserver,
-	private val dataRepository: DataRepository
+	private val dataRepository: DataRepository,
+	private val localDataRepository: LocalDataRepository
 ) {
 
 	private var networkStateDisposable: Disposable? = null
 	private var loadDataDisposable: Disposable? = null
+	private var observeDataDisposable: Disposable? = null
 
 	fun loadPost(id: Int) {
-		viewModel.setTitle("")
-		viewModel.setDetails("")
 		if (viewModel.isNetworkAvailable()) {
 			viewModel.setRefreshing(true)
 			loadDataDisposable?.dispose()
@@ -30,8 +31,10 @@ class DetailsController @Inject constructor(
 				.observeOn(AndroidSchedulers.mainThread())
 				.subscribe(
 					{ post ->
-						viewModel.setTitle(post.title)
-						viewModel.setDetails(post.body)
+						localDataRepository.insertPosts(listOf(post))
+							.subscribeOn(Schedulers.io())
+							.observeOn(AndroidSchedulers.mainThread())
+							.subscribe()
 						viewModel.setRefreshing(false)
 						viewModel.setPlaceholderVisible(false)
 					}, { t ->
@@ -42,6 +45,22 @@ class DetailsController @Inject constructor(
 					}
 				)
 		}
+	}
+
+	fun observePost(id: Int) {
+		observeDataDisposable = localDataRepository.observablePost(id)
+			.observeOn(AndroidSchedulers.mainThread())
+			.subscribeOn(Schedulers.io())
+			.subscribe(
+				{ post ->
+					viewModel.setTitle(post.title)
+					viewModel.setDetails(post.body)
+					viewModel.setPlaceholderVisible(false)
+				}, { t ->
+					Timber.e(t)
+					viewModel.showError(t)
+				}
+			)
 	}
 
 	fun onBackClick() {
@@ -60,6 +79,7 @@ class DetailsController @Inject constructor(
 
 	fun unsubscribe() {
 		networkStateDisposable?.dispose()
+		observeDataDisposable?.dispose()
 	}
 
 	fun clear() {

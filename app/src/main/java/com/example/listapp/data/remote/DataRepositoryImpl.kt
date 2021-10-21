@@ -1,4 +1,4 @@
-package com.example.listapp.data
+package com.example.listapp.data.remote
 
 import com.example.listapp.logic.DataRepository
 import com.example.listapp.logic.model.Post
