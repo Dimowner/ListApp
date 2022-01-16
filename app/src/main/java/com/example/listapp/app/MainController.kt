@@ -1,29 +1,25 @@
 package com.example.listapp.app
 
-import com.example.listapp.NetworkObserver
+import com.example.listapp.NetworkStateObserver
 import dagger.hilt.android.scopes.ActivityScoped
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import timber.log.Timber
 import javax.inject.Inject
 
+@ExperimentalCoroutinesApi
 @ActivityScoped
 class MainController @Inject constructor(
 	private val mainViewModel: MainViewModel,
-	private val networkObserver: NetworkObserver
+	private val networkObserver: NetworkStateObserver
 ) {
 
-	private var disposable: Disposable? = null
-
-	fun subscribeNetworkStateChanges() {
-		disposable?.dispose()
-		disposable = networkObserver.observeNetworkStateChanges()
-			.observeOn(AndroidSchedulers.mainThread())
-			.subscribe { isConnected ->
-				mainViewModel.setNetworkAvailable(isConnected)
-			}
-	}
-
-	fun unsubscribe() {
-		disposable?.dispose()
+	@FlowPreview
+	suspend fun subscribeNetworkStateChanges() {
+		networkObserver.observeNetworkStateChanges()
+			.catch { Timber.e(it) }
+			.collect { mainViewModel.setNetworkAvailable(it) }
 	}
 }

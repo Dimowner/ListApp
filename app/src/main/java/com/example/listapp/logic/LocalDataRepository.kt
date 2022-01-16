@@ -1,14 +1,13 @@
 package com.example.listapp.logic
 
 import com.example.listapp.logic.model.Post
-import io.reactivex.Completable
-import io.reactivex.Observable
+import kotlinx.coroutines.flow.Flow
 
 interface LocalDataRepository {
 
-	fun insertPosts(list: List<Post>): Completable
+	suspend fun insertPosts(list: List<Post>)
 
-	fun observablePosts(): Observable<List<Post>>
+	fun observablePosts(): Flow<List<Post>>
 
-	fun observablePost(id: Int): Observable<Post>
+	fun observablePost(id: Int): Flow<Post>
 }

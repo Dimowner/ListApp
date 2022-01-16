@@ -1,87 +1,71 @@
 package com.example.listapp.app.posts
 
-import com.example.listapp.NetworkObserver
+import com.example.listapp.NetworkStateObserver
 import com.example.listapp.logic.DataRepository
 import com.example.listapp.logic.LocalDataRepository
 import dagger.hilt.android.scopes.FragmentScoped
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import timber.log.Timber
+import java.lang.Exception
 import javax.inject.Inject
 
+@ExperimentalCoroutinesApi
 @FragmentScoped
 class PostsListController @Inject constructor(
 	private val viewModel: PostsListViewModel,
-	private val networkObserver: NetworkObserver,
+	private val networkObserver: NetworkStateObserver,
 	private val dataRepository: DataRepository,
-	private val localDataRepository: LocalDataRepository
+	private val localDataRepository: LocalDataRepository,
 ) {
 
-	private var networkStateDisposable: Disposable? = null
-	private var loadDataDisposable: Disposable? = null
-	private var observeDataDisposable: Disposable? = null
-
-	fun loadPosts() {
+	suspend fun loadPosts() {
 		if (viewModel.isNetworkAvailable()) {
 			viewModel.setRefreshing(true)
-			loadDataDisposable?.dispose()
-			loadDataDisposable = dataRepository.getPosts()
-					.subscribeOn(Schedulers.io())
-					.observeOn(AndroidSchedulers.mainThread())
-					.subscribe(
-						{ list ->
-							localDataRepository.insertPosts(list)
-								.subscribeOn(Schedulers.io())
-								.observeOn(AndroidSchedulers.mainThread())
-								.subscribe()
-							viewModel.setRefreshing(false)
-							viewModel.setPlaceholderVisible(list.isEmpty())
-						}, { t ->
-							Timber.e(t)
-							viewModel.showError(t)
-							viewModel.setRefreshing(false)
-							viewModel.setPlaceholderVisible(true)
-						}
-					)
+			withContext(Dispatchers.IO) {
+				try {
+					val list = dataRepository.getPosts()
+					localDataRepository.insertPosts(list)
+					withContext(Dispatchers.Main) {
+						viewModel.setRefreshing(false)
+						viewModel.setPlaceholderVisible(list.isEmpty())
+					}
+				} catch (e: Exception) {
+					Timber.e(e)
+					withContext(Dispatchers.Main) {
+						viewModel.showError(e)
+						viewModel.setRefreshing(false)
+						viewModel.setPlaceholderVisible(true)
+					}
+				}
+			}
 		}
 	}
 
-	fun observePosts() {
-		observeDataDisposable = localDataRepository.observablePosts()
-			.observeOn(AndroidSchedulers.mainThread())
-			.subscribeOn(Schedulers.io())
-			.subscribe(
-				{ list ->
-					viewModel.setList(list.map { PostListItem(it.id, it.title, it.body) })
-					viewModel.setPlaceholderVisible(list.isEmpty())
-				}, { t ->
-					Timber.e(t)
-					viewModel.showError(t)
-				}
-			)
+	suspend fun observePosts() {
+		localDataRepository.observablePosts()
+			.catch {
+				Timber.e(it)
+				viewModel.showError(it)
+			}
+			.collect { list ->
+				viewModel.setList(list.map { PostListItem(it.id, it.title, it.body) })
+				viewModel.setPlaceholderVisible(list.isEmpty())
+			}
 	}
 
 	fun onItemClick(id: Int) {
 		viewModel.selectItem(id)
 	}
 
-	fun subscribeNetworkStateChanges() {
-		networkStateDisposable?.dispose()
-		networkStateDisposable = networkObserver.observeNetworkStateChanges()
-			.observeOn(AndroidSchedulers.mainThread())
-			.subscribe { isConnected ->
+	@FlowPreview
+	suspend fun subscribeNetworkStateChanges() {
+		networkObserver.observeNetworkStateChanges()
+			.catch { Timber.e(it) }
+			.collect { isConnected ->
 				viewModel.setPullToRefreshEnabled(isConnected)
 				viewModel.setNetworkAvailable(isConnected)
 			}
-	}
-
-	fun unsubscribe() {
-		networkStateDisposable?.dispose()
-		observeDataDisposable?.dispose()
-	}
-
-	fun clear() {
-		loadDataDisposable?.dispose()
 	}
 }

@@ -8,14 +8,17 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.listapp.R
 import com.example.listapp.databinding.FragmentPostsListBinding
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.*
 import javax.inject.Inject
 
+@ExperimentalCoroutinesApi
 @AndroidEntryPoint
 class PostsListFragment: Fragment() {
 
@@ -30,9 +33,13 @@ class PostsListFragment: Fragment() {
 
 	private lateinit var adapter: PostsListAdapter
 
+	private lateinit var onStartScope: CoroutineScope
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-		controller.loadPosts()
+		lifecycleScope.launch {
+			controller.loadPosts()
+		}
 	}
 
 	override fun onCreateView(
@@ -59,19 +66,26 @@ class PostsListFragment: Fragment() {
 		binding.recyclerView.adapter = adapter
 
 		binding.swipeContainer.setOnRefreshListener {
-			controller.loadPosts()
+			lifecycleScope.launch {
+				controller.loadPosts()
+			}
 		}
 	}
 
 	override fun onStart() {
 		super.onStart()
-		controller.subscribeNetworkStateChanges()
-		controller.observePosts()
+		onStartScope = CoroutineScope(Dispatchers.Main)
+		onStartScope.launch {
+			controller.subscribeNetworkStateChanges()
+		}
+		lifecycleScope.launch {
+			controller.observePosts()
+		}
 	}
 
 	override fun onStop() {
 		super.onStop()
-		controller.unsubscribe()
+		onStartScope.cancel()
 	}
 
 	private fun updateScreen(state: PostsListState) {
@@ -101,11 +115,6 @@ class PostsListFragment: Fragment() {
 	override fun onDestroyView() {
 		super.onDestroyView()
 		_binding = null
-	}
-
-	override fun onDestroy() {
-		super.onDestroy()
-		controller.clear()
 	}
 
 	override fun onSaveInstanceState(outState: Bundle) {

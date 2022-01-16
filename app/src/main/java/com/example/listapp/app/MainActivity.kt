@@ -7,8 +7,10 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.example.listapp.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.*
 import javax.inject.Inject
 
+@ExperimentalCoroutinesApi
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
@@ -18,6 +20,8 @@ class MainActivity : AppCompatActivity() {
 
 	@Inject
 	lateinit var controller: MainController
+
+	private lateinit var onStartScope: CoroutineScope
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -29,12 +33,15 @@ class MainActivity : AppCompatActivity() {
 
 	override fun onStart() {
 		super.onStart()
-		controller.subscribeNetworkStateChanges()
+		onStartScope = CoroutineScope(Dispatchers.Main)
+		onStartScope.launch {
+			controller.subscribeNetworkStateChanges()
+		}
 	}
 
 	override fun onStop() {
 		super.onStop()
-		controller.unsubscribe()
+		onStartScope.cancel()
 	}
 
 	private fun updateScreen(state: MainState) {

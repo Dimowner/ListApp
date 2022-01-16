@@ -2,24 +2,23 @@ package com.example.listapp.data.local
 
 import androidx.room.*
 import com.example.listapp.data.local.model.PostEntity
-import io.reactivex.Completable
-import io.reactivex.Observable
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PostsDao {
 
 	@Query("SELECT * FROM posts")
-	fun getAll(): Observable<List<PostEntity>>
+	fun getAll(): Flow<List<PostEntity>>
 
 	@Query("SELECT * FROM posts WHERE id = :id")
-	fun getPost(id: Int): Observable<PostEntity>
+	fun getPost(id: Int): Flow<PostEntity>
 
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
-	fun insertAll(vararg post: PostEntity): Completable
+	suspend fun insertAll(vararg post: PostEntity)
 
 	@Delete
-	fun delete(post: PostEntity): Completable
+	suspend fun delete(post: PostEntity)
 
 	@Query("DELETE FROM posts")
-	fun deleteAll(): Completable
+	suspend fun deleteAll()
 }

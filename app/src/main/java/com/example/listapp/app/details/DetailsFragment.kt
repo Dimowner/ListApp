@@ -8,13 +8,16 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.listapp.R
 import com.example.listapp.databinding.FragmentDetailsBinding
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.*
 import javax.inject.Inject
 
+@ExperimentalCoroutinesApi
 @AndroidEntryPoint
 class DetailsFragment: Fragment() {
 
@@ -29,9 +32,13 @@ class DetailsFragment: Fragment() {
 	private var _binding: FragmentDetailsBinding? = null
 	private val binding get() = _binding!!
 
+	private lateinit var onStartScope: CoroutineScope
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-		controller.loadPost(args.id)
+		lifecycleScope.launch {
+			controller.loadPost(args.id)
+		}
 	}
 
 	override fun onCreateView(
@@ -50,7 +57,9 @@ class DetailsFragment: Fragment() {
 		viewModel.detailsEventsLiveData.observe(viewLifecycleOwner, { onEvent(it) })
 
 		binding.swipeContainer.setOnRefreshListener {
-			controller.loadPost(args.id)
+			lifecycleScope.launch {
+				controller.loadPost(args.id)
+			}
 		}
 		binding.btnBack.setOnClickListener {
 			controller.onBackClick()
@@ -59,23 +68,23 @@ class DetailsFragment: Fragment() {
 
 	override fun onStart() {
 		super.onStart()
-		controller.subscribeNetworkStateChanges()
-		controller.observePost(args.id)
+		onStartScope = CoroutineScope(Dispatchers.Main)
+		onStartScope.launch {
+			controller.subscribeNetworkStateChanges()
+		}
+		lifecycleScope.launch {
+			controller.observePost(args.id)
+		}
 	}
 
 	override fun onStop() {
 		super.onStop()
-		controller.unsubscribe()
+		onStartScope.cancel()
 	}
 
 	override fun onDestroyView() {
 		super.onDestroyView()
 		_binding = null
-	}
-
-	override fun onDestroy() {
-		super.onDestroy()
-		controller.clear()
 	}
 
 	private fun updateScreen(state: DetailsState) {
