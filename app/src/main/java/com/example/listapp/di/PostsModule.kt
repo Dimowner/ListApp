@@ -1,23 +1,23 @@
 package com.example.listapp.di
 
-import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.listapp.app.posts.PostsListViewModel
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ActivityComponent
-import dagger.hilt.android.scopes.ActivityScoped
+import dagger.hilt.android.components.FragmentComponent
+import dagger.hilt.android.scopes.FragmentScoped
 
 @Module
-@InstallIn(ActivityComponent::class)
+@InstallIn(FragmentComponent::class)
 object PostsModule {
 
 	@Provides
-	@ActivityScoped
+	@FragmentScoped
 	fun providePostsListViewModel(
-		activity: FragmentActivity
+		fragment: Fragment
 	): PostsListViewModel {
-		return ViewModelProvider(activity).get(PostsListViewModel::class.java)
+		return ViewModelProvider(fragment).get(PostsListViewModel::class.java)
 	}
 }

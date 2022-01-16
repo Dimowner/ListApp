@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -24,8 +23,8 @@ class DetailsFragment: Fragment() {
 	@Inject
 	lateinit var controller: DetailsController
 
-	//TODO: Fix activity scoped viewModel
-	private val viewModel: DetailsViewModel by activityViewModels()
+	@Inject
+	lateinit var viewModel: DetailsViewModel
 
 	private val args: DetailsFragmentArgs by navArgs()
 

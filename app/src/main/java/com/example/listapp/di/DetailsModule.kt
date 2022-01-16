@@ -1,23 +1,24 @@
 package com.example.listapp.di
 
-import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.listapp.app.details.DetailsViewModel
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ActivityComponent
-import dagger.hilt.android.scopes.ActivityScoped
+import dagger.hilt.android.components.FragmentComponent
+import dagger.hilt.android.scopes.FragmentScoped
 
 @Module
-@InstallIn(ActivityComponent::class)
+@InstallIn(FragmentComponent::class)
 object DetailsModule {
 
 	@Provides
-	@ActivityScoped
+	@FragmentScoped
 	fun provideDetailsViewModel(
-		activity: FragmentActivity
+		fragment: Fragment
 	): DetailsViewModel {
-		return ViewModelProvider(activity).get(DetailsViewModel::class.java)
+		val viewModel =  ViewModelProvider(fragment).get(DetailsViewModel::class.java)
+		return viewModel
 	}
 }

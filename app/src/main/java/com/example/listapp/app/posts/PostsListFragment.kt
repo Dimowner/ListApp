@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -22,11 +21,11 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class PostsListFragment: Fragment() {
 
-	//TODO: Fix activity scoped viewModel
-	private val viewModel: PostsListViewModel by activityViewModels()
-
 	private var _binding: FragmentPostsListBinding? = null
 	private val binding get() = _binding!!
+
+	@Inject
+	lateinit var viewModel: PostsListViewModel
 
 	@Inject
 	lateinit var controller: PostsListController
